@@ -42,6 +42,21 @@ class EmailLoginForm(AuthenticationForm):
         return self.cleaned_data["username"].strip().lower()
 
 
+class ProfileForm(forms.ModelForm):
+    """Lets a logged-in user view/edit their own profile info."""
+
+    class Meta:
+        model = User
+        fields = ("full_name", "email", "contact_number", "photo")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        clash = User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise ValidationError("An account with this email already exists.")
+        return email
+
+
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
