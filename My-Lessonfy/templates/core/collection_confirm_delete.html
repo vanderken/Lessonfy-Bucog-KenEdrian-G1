@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Delete collection{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Delete "{{ collection.name }}"?</h1>
+  {% if pin_count %}
+  <p><strong>{{ pin_count }} pin{{ pin_count|pluralize }}</strong> saved in this collection will also be deleted. The lesson text is not changed.</p>
+  {% else %}
+  <p>This collection has no pins.</p>
+  {% endif %}
+  <form method="post" class="row">
+    {% csrf_token %}
+    <button type="submit" class="btn danger">Yes, delete</button>
+    <a class="btn" href="{% url 'collections' %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

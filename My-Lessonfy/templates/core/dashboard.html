@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page">
+  <h1>Dashboard</h1>
+  <p class="muted">Signed in as {{ user.email }}</p>
+
+  <div class="row between">
+    <h2>Your lessons</h2>
+    <div class="row">
+      <a class="btn pri" href="{% url 'lesson_create' %}">New lesson</a>
+      <a class="btn" href="{% url 'lesson_upload' %}">Upload or paste text</a>
+    </div>
+  </div>
+
+  {% if lessons %}
+  <ul class="list card">
+    {% for lesson in lessons %}
+    <li>
+      <div class="row between">
+        <div>
+          <strong><a href="{% url 'reader' lesson.pk %}">{{ lesson.title }}</a></strong>
+          {% if lesson.subtitle %}<div class="muted">{{ lesson.subtitle }}</div>{% endif %}
+          <div class="muted">{{ lesson.done_count }} of {{ lesson.panel_count }} section{{ lesson.panel_count|pluralize }} done</div>
+        </div>
+        <div class="row">
+          <a class="btn pri sm" href="{% url 'reader' lesson.pk %}">Read</a>
+          <a class="btn sm" href="{% url 'lesson_detail' lesson.pk %}">Edit</a>
+          <a class="btn sm danger" href="{% url 'lesson_delete' lesson.pk %}">Delete</a>
+        </div>
+      </div>
+      <div class="bar" aria-hidden="true"><i style="width: {% widthratio lesson.done_count lesson.panel_count 100 %}%"></i></div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="card">
+    <p>No lessons yet. Start with one of these:</p>
+    <p class="row">
+      <a class="btn pri" href="{% url 'lesson_upload' %}">Upload a file or paste text</a>
+      <a class="btn" href="{% url 'lesson_create' %}">Write a lesson by hand</a>
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="row between">
+    <h2>Pins by collection</h2>
+    <a class="btn sm" href="{% url 'collections' %}">Manage collections</a>
+  </div>
+  <ul class="list card">
+    {% for c in collections %}
+    <li class="row between">
+      <span><span class="dot" style="background: {{ c.color }}"></span> {{ c.name }}</span>
+      <strong>{{ c.pin_count }}</strong>
+    </li>
+    {% empty %}
+    <li class="muted">No collections yet.</li>
+    {% endfor %}
+  </ul>
+  <p class="muted">{{ total_pins }} pin{{ total_pins|pluralize }} in total.</p>
+</div>
+{% endblock %}

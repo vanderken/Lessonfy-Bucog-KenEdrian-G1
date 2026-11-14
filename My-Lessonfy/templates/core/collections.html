@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Collections{% endblock %}
+{% block content %}
+<div class="page">
+  <h1>Collections</h1>
+  <p class="muted">Collections group your pins. Pick one when you select text in a lesson.</p>
+
+  <ul class="list card">
+    {% for c in collections %}
+    <li class="row between">
+      <span><span class="dot" style="background: {{ c.color }}"></span> <strong>{{ c.name }}</strong>
+        <span class="muted">{{ c.pin_count }} pin{{ c.pin_count|pluralize }}</span></span>
+      <span class="row">
+        <a class="btn sm" href="{% url 'collection_edit' c.pk %}">Rename or recolor</a>
+        <a class="btn sm danger" href="{% url 'collection_delete' c.pk %}">Delete</a>
+      </span>
+    </li>
+    {% empty %}
+    <li class="muted">You have no collections. Create one below.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>New collection</h2>
+  <form method="post" class="card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      <label for="{{ form.name.id_for_label }}">Name</label><br>
+      {{ form.name }}{{ form.name.errors }}
+    </p>
+    <fieldset style="border:0;padding:0;margin:0 0 14px">
+      <legend><strong>Color</strong></legend>
+      <div class="swatches" role="radiogroup">
+        {% for radio in form.color %}
+        <label for="{{ radio.id_for_label }}">{{ radio.tag }}<span class="dot" style="background: {{ radio.data.value }}"></span> {{ radio.choice_label }}</label>
+        {% endfor %}
+      </div>{{ form.color.errors }}
+    </fieldset>
+    <button type="submit" class="btn pri">Create collection</button>
+  </form>
+</div>
+{% endblock %}

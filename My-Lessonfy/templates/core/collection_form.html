@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Edit collection{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Edit collection</h1>
+  <form method="post" class="card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      <label for="{{ form.name.id_for_label }}">Name</label><br>
+      {{ form.name }}{{ form.name.errors }}
+    </p>
+    <fieldset style="border:0;padding:0;margin:0 0 14px">
+      <legend><strong>Color</strong></legend>
+      <div class="swatches" role="radiogroup">
+        {% for radio in form.color %}
+        <label for="{{ radio.id_for_label }}">{{ radio.tag }}<span class="dot" style="background: {{ radio.data.value }}"></span> {{ radio.choice_label }}</label>
+        {% endfor %}
+      </div>{{ form.color.errors }}
+      <span class="helptext">Pins already saved in this collection take the new color.</span>
+    </fieldset>
+    <button type="submit" class="btn pri">Save changes</button>
+    <a class="btn" href="{% url 'collections' %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

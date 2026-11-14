@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete lesson{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Delete "{{ lesson.title }}"?</h1>
+  <p>This permanently deletes the lesson, all of its sections, and all pins saved in it. It cannot be undone.</p>
+  <form method="post" class="row">
+    {% csrf_token %}
+    <button type="submit" class="btn danger">Yes, delete</button>
+    <a class="btn" href="{% url 'lesson_detail' lesson.pk %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

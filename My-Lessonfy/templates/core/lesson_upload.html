@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Upload a lesson{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Upload or paste a lesson</h1>
+  <p class="muted">Pick a .txt or .docx file, or paste your notes. The text is split into short sections for you.</p>
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <p>
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label><br>
+      {{ field }}{{ field.errors }}
+      {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+    </p>
+    {% endfor %}
+    <button type="submit" class="btn pri">Create lesson</button>
+    <a class="btn" href="{% url 'dashboard' %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

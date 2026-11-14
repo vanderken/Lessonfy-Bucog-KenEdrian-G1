@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/reader.css' %}">{% endblock %}
+{% block body_class %}reader-page{% endblock %}
+{% block content %}
+<section class="timerbar" role="group" aria-label="Focus timer">
+  <span class="time" id="time">25:00</span><span class="phase" id="phase">Focus</span>
+  <button class="btn pri" id="tstart" type="button">Start</button>
+  <button class="btn" id="treset" type="button">Reset</button>
+  <select id="tlen" aria-label="Focus and break length">
+    {% for value, label in timer_choices %}<option value="{{ value }}"{% if value == s.timer_preset %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+</section>
+
+<section class="tools" aria-label="Reading settings">
+  <label><input type="checkbox" id="bionic"{% if s.bionic_reading %} checked{% endif %}>Bionic reading</label>
+  <label><input type="checkbox" id="focus"{% if s.focus_mode %} checked{% endif %}>Focus one section</label>
+  <label>Text size <input type="range" id="size" min="16" max="28" step="1" value="{{ s.font_size }}"></label>
+  <label>Line spacing <input type="range" id="gap" min="1.4" max="2.4" step="0.1" value="{{ s.line_spacing|stringformat:'.1f' }}"></label>
+  <label>Sound
+    <select id="sound">
+      {% for value, label in sound_choices %}<option value="{{ value }}"{% if value == s.sound %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <button class="btn sm" id="soundtoggle" type="button" aria-pressed="false">Play</button>
+  <label class="vol">Volume <input type="range" id="vol" min="0" max="1" step="0.05" value="{{ s.volume|stringformat:'.2f' }}"></label>
+  <label>Background
+    <select id="bg">
+      {% for value, label in background_choices %}<option value="{{ value }}"{% if value == s.background %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <button class="btn" id="theme" type="button">Switch theme</button>
+</section>
+<div id="status" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+  <article class="reader" id="reader">
+    <h1>{{ lesson.title }}</h1>
+    {% if lesson.subtitle %}<p class="subtitle">{{ lesson.subtitle }}</p>{% endif %}
+    <p class="hint">Select any text and pick a collection to pin it. Pins can be found again in the list on the side.</p>
+    <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+    <div class="pcount" id="pcount"></div>
+    <div id="chunks">
+      <noscript><p class="empty">The reader needs JavaScript. Please turn it on.</p></noscript>
+    </div>
+  </article>
+
+  <aside>
+    <details class="sidepanel" id="panel">
+      <summary>Your pins (<span id="count">0</span>)</summary>
+      <div id="list"></div>
+    </details>
+    <p class="muted"><a href="{% url 'lesson_detail' lesson.pk %}">Edit this lesson</a> · <a href="{% url 'collections' %}">Collections</a></p>
+  </aside>
+</div>
+
+<div class="tb" id="tb" role="toolbar" aria-label="Pin the selected text"></div>
+
+{{ reader_data|json_script:"reader-data" }}
+<script src="{% static 'js/bionic.js' %}"></script>
+<script src="{% static 'js/settings.js' %}"></script>
+<script src="{% static 'js/pins.js' %}"></script>
+{% endblock %}

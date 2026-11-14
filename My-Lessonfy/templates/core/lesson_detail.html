@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}
+<div class="page">
+  <h1>{{ lesson.title }}</h1>
+  {% if lesson.subtitle %}<p class="muted">{{ lesson.subtitle }}</p>{% endif %}
+  <p class="row">
+    <a class="btn pri" href="{% url 'reader' lesson.pk %}">Read this lesson</a>
+    <a class="btn" href="{% url 'lesson_edit' lesson.pk %}">Edit title</a>
+    <a class="btn danger" href="{% url 'lesson_delete' lesson.pk %}">Delete lesson</a>
+    <a class="btn" href="{% url 'dashboard' %}">Back to dashboard</a>
+  </p>
+
+  <h2>Sections</h2>
+  {% if panels %}
+  <ol class="list card">
+    {% for panel in panels %}
+    <li>
+      <p class="panel-text">{{ panel.text }}</p>
+      <a class="btn sm" href="{% url 'panel_edit' lesson.pk panel.pk %}">Edit</a>
+      <form method="post" action="{% url 'panel_delete' lesson.pk panel.pk %}" class="inline"
+            onsubmit="return confirm('Delete this section and its pins?');">
+        {% csrf_token %}
+        <button type="submit" class="btn sm danger">Delete</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="card muted">No sections yet. Add the first one below.</p>
+  {% endif %}
+
+  <h2>Add a section</h2>
+  <form method="post" action="{% url 'panel_add' lesson.pk %}" class="card">
+    {% csrf_token %}
+    {% for field in form %}
+    <p>
+      <label for="{{ field.id_for_label }}">Text</label><br>
+      {{ field }}{{ field.errors }}
+    </p>
+    {% endfor %}
+    <button type="submit" class="btn pri">Add section</button>
+  </form>
+</div>
+{% endblock %}
