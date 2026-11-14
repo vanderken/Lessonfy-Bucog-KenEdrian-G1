@@ -7,6 +7,10 @@ from .forms import EmailLoginForm
 urlpatterns = [
     path("", views.home, name="home"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("dashboard/student/", views.student_dashboard, name="dashboard_student"),
+    path("dashboard/admin/", views.admin_dashboard, name="dashboard_admin"),
+    path("profile/", views.profile, name="profile"),
+    path("profile/edit/", views.profile_edit, name="profile_edit"),
     # lessons and panels
     path("lessons/new/", views.create_lesson, name="lesson_create"),
     path("lessons/upload/", views.upload_lesson, name="lesson_upload"),

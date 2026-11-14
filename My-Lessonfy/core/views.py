@@ -2,6 +2,7 @@ import json
 import os
 from functools import wraps
 
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
@@ -16,6 +17,7 @@ from .forms import (
     LessonForm,
     LessonUploadForm,
     PanelForm,
+    ProfileForm,
     RegisterForm,
 )
 from .models import (
@@ -27,6 +29,7 @@ from .models import (
     Lesson,
     Panel,
     Pin,
+    User,
     UserSettings,
 )
 
@@ -107,10 +110,36 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            messages.success(request, "Account created! Welcome to Lessonfy.")
             return redirect("dashboard")
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = RegisterForm()
     return render(request, "registration/register.html", {"form": form})
+
+
+# ---------- profile ----------
+
+
+@login_required
+def profile(request):
+    return render(request, "core/profile.html", {"profile_user": request.user})
+
+
+@login_required
+def profile_edit(request):
+    if request.method == "POST":
+        form = ProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect("profile")
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, "core/profile_edit.html", {"form": form})
 
 
 # ---------- dashboard ----------
@@ -118,7 +147,18 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    # Everything here is filtered by request.user. Never use .objects.all().
+    """Entry point after login. Sends each user to their own role's dashboard."""
+    if request.user.role == "admin":
+        return admin_dashboard(request)
+    return student_dashboard(request)
+
+
+@login_required
+def student_dashboard(request):
+    if request.user.role != "student":
+        # A non-student typed this URL directly - bounce them to their own page.
+        return redirect("dashboard")
+
     lessons = Lesson.objects.filter(user=request.user).annotate(
         panel_count=Count("panels", distinct=True),
         done_count=Count("panels", filter=Q(panels__is_done=True), distinct=True),
@@ -126,11 +166,31 @@ def dashboard(request):
     collections = Collection.objects.filter(user=request.user).annotate(pin_count=Count("pins"))
     return render(
         request,
-        "core/dashboard.html",
+        "core/dashboard_student.html",
         {
             "lessons": lessons,
             "collections": collections,
             "total_pins": sum(c.pin_count for c in collections),
+        },
+    )
+
+
+@login_required
+def admin_dashboard(request):
+    if request.user.role != "admin":
+        # A non-admin typed this URL directly - bounce them to their own page.
+        return redirect("dashboard")
+
+    all_users = User.objects.all().order_by("email")
+    all_lessons = Lesson.objects.select_related("user").order_by("-created_at")
+    return render(
+        request,
+        "core/dashboard_admin.html",
+        {
+            "all_users": all_users,
+            "all_lessons": all_lessons,
+            "total_users": all_users.count(),
+            "total_lessons": all_lessons.count(),
         },
     )
 

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+<p>Logged in as <strong>Admin</strong>.</p>
+
+<h2>All users ({{ total_users }})</h2>
+<table>
+  <tr><th>Email</th><th>Name</th><th>Role</th><th>Joined</th></tr>
+  {% for u in all_users %}
+  <tr>
+    <td>{{ u.email }}</td>
+    <td>{{ u.full_name }}</td>
+    <td>{{ u.get_role_display }}</td>
+    <td>{{ u.date_joined|date:"M d, Y" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>All lessons ({{ total_lessons }})</h2>
+<table>
+  <tr><th>Title</th><th>Owner</th><th>Created</th></tr>
+  {% for l in all_lessons %}
+  <tr>
+    <td>{{ l.title }}</td>
+    <td>{{ l.user.email }}</td>
+    <td>{{ l.created_at|date:"M d, Y" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

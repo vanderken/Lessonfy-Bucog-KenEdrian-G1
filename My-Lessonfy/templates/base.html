@@ -23,11 +23,19 @@
       <a href="{% url 'lesson_create' %}"{% if request.resolver_match.url_name == 'lesson_create' %} aria-current="page"{% endif %}>New lesson</a>
       <a href="{% url 'lesson_upload' %}"{% if request.resolver_match.url_name == 'lesson_upload' %} aria-current="page"{% endif %}>Upload</a>
       <a href="{% url 'collections' %}"{% if request.resolver_match.url_name == 'collections' %} aria-current="page"{% endif %}>Collections</a>
+      <a href="{% url 'profile' %}"{% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'profile_edit' %} aria-current="page"{% endif %}>Profile</a>
       <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="linklike">Log out</button></form>
     </nav>
     {% endif %}
   </header>
   <main id="main">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>
