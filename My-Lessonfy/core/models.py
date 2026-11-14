@@ -21,12 +21,24 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("role", "admin")
         return self.create_user(email, password, **extra_fields)
+
+
+ROLE_CHOICES = [
+    ("student", "Student"),
+    ("admin", "Admin"),
+]
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField("email address", unique=True)
+
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="student")
+    full_name = models.CharField(max_length=150, blank=True)
+    contact_number = models.CharField(max_length=20, blank=True)
+    photo = models.ImageField(upload_to="profile_photos/", blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
