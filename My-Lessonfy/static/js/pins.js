@@ -1,12 +1,3 @@
-/* The reader: sections, progress, pins (highlights), the pin popup and the pin list.
-
-   RULES THAT KEEP PINS SAFE
-   - A pin is two numbers (start, end) counted in characters (Unicode code points)
-     of the RAW section text from the database. Never of the HTML on screen.
-   - Bionic reading only adds <b> tags around text that is already there, so the
-     plain text of a section is the same with it on or off. Pins never move.
-   - rangeOffsets() below is the ONE function that turns a browser selection into
-     offsets. */
 (function () {
   'use strict';
 
@@ -18,7 +9,6 @@
   var panels = D.panels.map(function (p) { p.cps = Array.from(p.text); return p; });
   var collections = D.collections.slice();
   var pins = D.pins.slice();
-  // Start on the first section that is not done yet (or the first one).
   var active = Math.max(0, panels.findIndex(function (p) { return !p.done; }));
 
   var panelIndexById = {};
@@ -28,9 +18,6 @@
   function pinsOf(panelId) { return pins.filter(function (p) { return p.panel === panelId; }); }
   function url(template, id) { return template.replace(/\/0\//, '/' + id + '/'); }
 
-  /* ---------- selection -> offsets (the one dedicated function) ---------- */
-
-  // Offsets of a Range inside one .txt element, as code points of the raw text.
   function rangeOffsets(txtEl, range) {
     var pre = document.createRange();
     pre.selectNodeContents(txtEl);
@@ -41,14 +28,11 @@
     return { start: start, end: end };
   }
 
-  // Do not pin leading or trailing spaces/new lines.
   function trimOffsets(cps, start, end) {
     while (start < end && /\s/.test(cps[start])) start++;
     while (end > start && /\s/.test(cps[end - 1])) end--;
     return { start: start, end: end };
   }
-
-  /* ---------- drawing ---------- */
 
   function paraHTML(i) {
     var p = panels[i], cps = p.cps, len = cps.length;
@@ -94,7 +78,6 @@
     renderList();
   }
 
-  // Redraw one section only (fast, keeps scroll position).
   function refreshPanel(i) {
     var sec = document.querySelector('.chunk[data-i="' + i + '"]');
     if (!sec) return;
@@ -155,8 +138,6 @@
     setTimeout(function () { els.forEach(function (e) { e.classList.remove('pulse'); }); }, 1500);
   }
 
-  /* ---------- pin actions (saved on the server, then drawn) ---------- */
-
   function fail(e) { L.status(e.message, { error: true, ms: 7000 }); }
 
   function createPin(panelIdx, collectionId, start, end) {
@@ -172,7 +153,6 @@
       }).catch(fail);
   }
 
-  // The "Come back to this" collection may have been renamed or deleted.
   function quickCollectionId() {
     var c = collections.find(function (x) { return x.name.toLowerCase() === D.quickCollection.toLowerCase(); });
     if (c) return Promise.resolve(c.id);
@@ -246,8 +226,6 @@
     }
   }
 
-  /* ---------- selection popup ---------- */
-
   var tb = $('#tb'), sel = null;
 
   function buildToolbar() {
@@ -281,7 +259,6 @@
     tb.style.top = (rect.top - tb.offsetHeight - 8 < 8 ? rect.bottom + 10 : rect.top - tb.offsetHeight - 8) + 'px';
   });
 
-  // Keep the text selected while the person presses a popup button.
   ['mousedown', 'touchstart'].forEach(function (ev) {
     tb.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
   });
@@ -307,7 +284,6 @@
     }
   });
 
-  /* ---------- bionic toggled: redraw only, never touch pins ---------- */
   document.addEventListener('lessonfy:setting', function (e) {
     if (e.detail.key === 'bionic_reading') {
       document.querySelectorAll('.chunk').forEach(function (c) { refreshPanel(+c.dataset.i); });

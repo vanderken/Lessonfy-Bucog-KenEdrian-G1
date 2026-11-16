@@ -15,25 +15,21 @@
   </div>
 
   {% if lessons %}
-  <ul class="list card">
+  <div class="lesson-list">
     {% for lesson in lessons %}
-    <li>
-      <div class="row between">
-        <div>
-          <strong><a href="{% url 'reader' lesson.pk %}">{{ lesson.title }}</a></strong>
-          {% if lesson.subtitle %}<div class="muted">{{ lesson.subtitle }}</div>{% endif %}
-          <div class="muted">{{ lesson.done_count }} of {{ lesson.panel_count }} section{{ lesson.panel_count|pluralize }} done</div>
-        </div>
-        <div class="row">
-          <a class="btn pri sm" href="{% url 'reader' lesson.pk %}">Read</a>
-          <a class="btn sm" href="{% url 'lesson_detail' lesson.pk %}">Edit</a>
-          <a class="btn sm danger" href="{% url 'lesson_delete' lesson.pk %}">Delete</a>
-        </div>
+    <div class="lesson-card">
+      <div class="lesson-info">
+        <a class="lesson-title" href="{% url 'reader' lesson.pk %}">{{ lesson.title }}</a>
+        <div class="lesson-meta">{{ lesson.updated_at|date:"M j, Y" }} · {{ lesson.panel_count }} panel{{ lesson.panel_count|pluralize }}</div>
+        <div class="bar" aria-hidden="true"><i style="width: {% widthratio lesson.done_count lesson.panel_count 100 %}%"></i></div>
       </div>
-      <div class="bar" aria-hidden="true"><i style="width: {% widthratio lesson.done_count lesson.panel_count 100 %}%"></i></div>
-    </li>
+      <div class="lesson-actions">
+        <a class="btn outline" href="{% url 'lesson_detail' lesson.pk %}">Modify</a>
+        <a class="btn outline danger" href="{% url 'lesson_delete' lesson.pk %}">Delete</a>
+      </div>
+    </div>
     {% endfor %}
-  </ul>
+  </div>
   {% else %}
   <div class="card">
     <p>No lessons yet. Start with one of these:</p>
@@ -60,4 +56,56 @@
   </ul>
   <p class="muted">{{ total_pins }} pin{{ total_pins|pluralize }} in total.</p>
 </div>
+
+<style>
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.lesson-card {
+  background: #fff;
+  border: 1px solid #e3e8ee;
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.lesson-info { flex: 1; }
+.lesson-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #16324f;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 4px;
+}
+.lesson-meta {
+  color: #6b7a8d;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+.lesson-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 20px;
+}
+.btn.outline {
+  border: 1px solid #d8dee6;
+  background: #fff;
+  color: #16324f;
+  border-radius: 10px;
+  padding: 8px 20px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  min-width: 100px;
+}
+.btn.outline:hover { background: #f4f7fa; }
+.btn.outline.danger { color: #c0392b; }
+.btn.outline.danger:hover { background: #fdf0ee; }
+</style>
 {% endblock %}

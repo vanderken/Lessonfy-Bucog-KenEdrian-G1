@@ -59,8 +59,6 @@ MIDDLEWARE = [
 ]
 
 if not DEBUG:
-    # WhiteNoise serves the collected static files in production (needs `collectstatic`).
-    # In development, Django's own runserver serves static/ so this is skipped.
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # right after SecurityMiddleware
 
 ROOT_URLCONF = "lessonfy.urls"
@@ -83,7 +81,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "lessonfy.wsgi.application"
 
 
-# Database: Supabase PostgreSQL through the session pooler string.
 DATABASES = {
     "default": dj_database_url.parse(require_env("DATABASE_URL"), conn_max_age=600),
 }
@@ -106,14 +103,12 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "static/"
-# Static files (served by WhiteNoise in production)
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]  # project-level static/ folder
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
-        # Plain storage in dev; hashed + compressed files when DEBUG is False.
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
             if DEBUG
@@ -122,7 +117,6 @@ STORAGES = {
     },
 }
 
-# Uploads are tiny (.txt / .docx, 1 MB limit in core/forms.py).
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -132,7 +126,6 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
 
-# Production hardening (only when DEBUG is False)
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

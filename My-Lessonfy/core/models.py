@@ -47,7 +47,6 @@ class User(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         constraints = [
-            # "A@x.com" and "a@x.com" are the same account.
             models.UniqueConstraint(Lower("email"), name="user_email_unique_ci"),
         ]
 
@@ -197,9 +196,6 @@ class Panel(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        # Pin offsets point into this exact text, so it must be stored in one
-        # canonical form: "\n" line endings (browsers turn "\r\n" into "\n"
-        # when they parse HTML) and no NUL characters (PostgreSQL rejects them).
         self.text = normalize_text(self.text)
         super().save(*args, **kwargs)
 

@@ -1,4 +1,3 @@
-/* Lessonfy: shared styles for every page (design tokens come from the LESSONFY.html prototype). */
 :root {
   box-sizing: border-box;
   color-scheme: light;
@@ -33,7 +32,6 @@ h3 { font-size: 1.05rem; margin: 20px 0 8px; }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--accent); color: var(--accent-ink); padding: 8px 14px; border-radius: 8px; z-index: 100; }
 .skip:focus { left: 8px; }
 
-/* header + nav */
 .top {
   position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center;
   gap: 8px 20px; flex-wrap: wrap; padding: 10px clamp(14px, 4vw, 32px);
@@ -46,7 +44,6 @@ h3 { font-size: 1.05rem; margin: 20px 0 8px; }
 .nav a[aria-current="page"] { font-weight: 700; box-shadow: inset 0 -3px 0 var(--accent); border-radius: 0; }
 .nav form { margin: 0; }
 
-/* page layout */
 .page { max-width: 860px; margin: 0 auto; padding: 24px clamp(14px, 4vw, 32px) 64px; }
 .page.narrow { max-width: 520px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 0 0 14px; }
@@ -54,7 +51,6 @@ h3 { font-size: 1.05rem; margin: 20px 0 8px; }
 .row.between { justify-content: space-between; }
 .stack > * + * { margin-top: 12px; }
 
-/* buttons */
 .btn { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 8px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; }
 .btn:hover { border-color: var(--accent); }
 .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
@@ -62,7 +58,6 @@ h3 { font-size: 1.05rem; margin: 20px 0 8px; }
 .btn.sm { padding: 4px 10px; font-size: .88rem; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 
-/* forms */
 form p { margin: 0 0 14px; }
 label { font-weight: 700; }
 input[type=text], input[type=email], input[type=password], input[type=file], select, textarea {
@@ -78,7 +73,6 @@ textarea { resize: vertical; }
 .swatches input { accent-color: var(--accent); }
 .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,.35); vertical-align: -2px; }
 
-/* lists */
 .list { list-style: none; margin: 0; padding: 0; }
 .list > li { border-top: 1px solid var(--line); padding: 12px 0; }
 .list > li:first-child { border-top: 0; }

@@ -56,7 +56,20 @@ class ProfileForm(forms.ModelForm):
             raise ValidationError("An account with this email already exists.")
         return email
 
+class AdminUserEditForm(forms.ModelForm):
+    """Lets an admin edit another user's name, email and role."""
 
+    class Meta:
+        model = User
+        fields = ("full_name", "email", "role", "is_active")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        clash = User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk)
+        if clash.exists():
+            raise ValidationError("An account with this email already exists.")
+        return email
+    
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
@@ -86,7 +99,6 @@ class CollectionForm(forms.ModelForm):
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        # Keep an old custom colour selectable when editing.
         current = self.instance.color if self.instance and self.instance.pk else None
         if current and current.upper() not in {c.upper() for c, _ in COLOR_CHOICES}:
             self.fields["color"].choices = [(current, "Current")] + COLOR_CHOICES

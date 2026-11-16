@@ -4,6 +4,9 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import login
+from .forms import (
+    AdminUserEditForm,
+)
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, Q
@@ -36,7 +39,6 @@ from .models import (
 QUICK_COLLECTION = "Come back to this"  # used by the per-section quick button
 
 
-# ---------- helpers ----------
 
 
 def api_login_required(view):
@@ -94,7 +96,6 @@ def pin_to_dict(pin):
     }
 
 
-# ---------- accounts ----------
 
 
 @login_required
@@ -119,7 +120,6 @@ def register(request):
     return render(request, "registration/register.html", {"form": form})
 
 
-# ---------- profile ----------
 
 
 @login_required
@@ -142,7 +142,6 @@ def profile_edit(request):
     return render(request, "core/profile_edit.html", {"form": form})
 
 
-# ---------- dashboard ----------
 
 
 @login_required
@@ -156,7 +155,6 @@ def dashboard(request):
 @login_required
 def student_dashboard(request):
     if request.user.role != "student":
-        # A non-student typed this URL directly - bounce them to their own page.
         return redirect("dashboard")
 
     lessons = Lesson.objects.filter(user=request.user).annotate(
@@ -178,7 +176,6 @@ def student_dashboard(request):
 @login_required
 def admin_dashboard(request):
     if request.user.role != "admin":
-        # A non-admin typed this URL directly - bounce them to their own page.
         return redirect("dashboard")
 
     all_users = User.objects.all().order_by("email")
@@ -193,9 +190,51 @@ def admin_dashboard(request):
             "total_lessons": all_lessons.count(),
         },
     )
+@login_required
+def admin_user_edit(request, pk):
+    if request.user.role != "admin":
+        return redirect("dashboard")
+
+    target = get_object_or_404(User, pk=pk)
+    if request.method == "POST":
+        form = AdminUserEditForm(request.POST, instance=target)
+        if form.is_valid():
+            if target.pk == request.user.pk and (
+                form.cleaned_data["role"] != "admin" or not form.cleaned_data["is_active"]
+            ):
+                messages.error(request, "You can't remove your own admin access.")
+            else:
+                form.save()
+                messages.success(request, f"Updated {target.email}.")
+                return redirect("dashboard_admin")
+    else:
+        form = AdminUserEditForm(instance=target)
+    return render(request, "core/admin_user_edit.html", {"form": form, "target": target})
 
 
-# ---------- lessons and panels ----------
+@login_required
+def admin_user_delete(request, pk):
+    if request.user.role != "admin":
+        return redirect("dashboard")
+
+    target = get_object_or_404(User, pk=pk)
+    if target.pk == request.user.pk:
+        messages.error(request, "You can't delete your own account.")
+        return redirect("dashboard_admin")
+
+    lesson_count = Lesson.objects.filter(user=target).count()
+    collection_count = Collection.objects.filter(user=target).count()
+
+    if request.method == "POST":
+        target.delete()  # lessons, collections, pins removed by CASCADE
+        messages.success(request, f"Deleted {target.email}.")
+        return redirect("dashboard_admin")
+    return render(
+        request,
+        "core/admin_user_confirm_delete.html",
+        {"target": target, "lesson_count": lesson_count, "collection_count": collection_count},
+    )
+
 
 
 @login_required
@@ -249,7 +288,6 @@ def delete_lesson(request, pk):
     if request.method == "POST":
         lesson.delete()  # panels (and their pins) are removed by CASCADE
         return redirect("dashboard")
-    # GET only shows the confirmation page. Nothing is deleted on GET.
     return render(request, "core/lesson_confirm_delete.html", {"lesson": lesson})
 
 
@@ -266,8 +304,6 @@ def upload_lesson(request):
                 title = title or "Untitled lesson"
             with transaction.atomic():
                 lesson = Lesson.objects.create(user=request.user, title=title)
-                # Panel.save() is skipped by bulk_create, so text is already
-                # normalised by split_into_panels().
                 Panel.objects.bulk_create(
                     [Panel(lesson=lesson, order=i, text=t) for i, t in enumerate(form.panels, start=1)]
                 )
@@ -279,7 +315,6 @@ def upload_lesson(request):
 
 @login_required
 def lesson_detail(request, pk):
-    # 404 if the lesson does not exist OR belongs to someone else.
     lesson = get_object_or_404(Lesson, pk=pk, user=request.user)
     return render(
         request,
@@ -309,7 +344,6 @@ def add_panel(request, pk):
 
 @login_required
 def edit_panel(request, pk, panel_pk):
-    # The panel must belong to this lesson AND the lesson must belong to this user.
     panel = get_object_or_404(Panel, pk=panel_pk, lesson__pk=pk, lesson__user=request.user)
     old_text = panel.text  # read BEFORE the form touches the instance
     if request.method == "POST":
@@ -318,7 +352,6 @@ def edit_panel(request, pk, panel_pk):
             panel = form.save(commit=False)
             with transaction.atomic():
                 if panel.text != old_text:
-                    # The old pins point into text that no longer exists.
                     panel.pins.all().delete()
                     panel.is_done = False
                 panel.save()
@@ -344,15 +377,12 @@ def delete_panel(request, pk, panel_pk):
     panel = get_object_or_404(Panel, pk=panel_pk, lesson__pk=pk, lesson__user=request.user)
     with transaction.atomic():
         panel.delete()
-        # Keep order numbers 1, 2, 3 ... with no gaps.
         for i, p in enumerate(Panel.objects.filter(lesson_id=pk).order_by("order"), start=1):
             if p.order != i:
-                # Going from the top, each target number is already free.
                 Panel.objects.filter(pk=p.pk).update(order=i)
     return redirect("lesson_detail", pk=pk)
 
 
-# ---------- reader ----------
 
 
 @login_required
@@ -394,7 +424,6 @@ def reader(request, pk):
     )
 
 
-# ---------- JSON endpoints (all POST, CSRF protected, scoped to request.user) ----------
 
 
 @api_login_required
@@ -456,7 +485,6 @@ def pin_create(request, pk):
     collection = Collection.objects.filter(pk=ints["collection"], user=request.user).first()
     if panel is None or collection is None:
         return bad_request("Section or collection not found.", status=404)
-    # Offsets count characters (code points) in the raw panel text.
     if not 0 <= ints["start"] < ints["end"] <= len(panel.text):
         return bad_request("The selected text does not match this section. Reload the page.")
     snippet = panel.text[ints["start"] : ints["end"]]
@@ -532,7 +560,6 @@ def quick_collection(request):
     return JsonResponse({"ok": True, "collection": {"id": collection.pk, "name": collection.name, "color": collection.color}})
 
 
-# ---------- collections ----------
 
 
 @login_required

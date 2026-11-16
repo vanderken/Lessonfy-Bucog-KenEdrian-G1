@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Edit user · {{ target.email }}{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Edit user</h1>
+  <p class="muted">Editing <strong>{{ target.email }}</strong></p>
+
+  <form method="post" class="card">
+    {% csrf_token %}
+    {% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}
+    {% for field in form %}
+    <p>
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}{{ field.errors }}
+    </p>
+    {% endfor %}
+    <p class="row">
+      <button type="submit" class="btn pri">Save changes</button>
+      <a class="btn" href="{% url 'dashboard_admin' %}">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

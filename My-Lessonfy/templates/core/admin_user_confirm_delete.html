@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Delete user · {{ target.email }}{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1>Delete user</h1>
+
+  <div class="card">
+    <p>Are you sure you want to delete <strong>{{ target.email }}</strong>?</p>
+    <p class="muted">
+      This also permanently removes their {{ lesson_count }} lesson{{ lesson_count|pluralize }},
+      {{ collection_count }} collection{{ collection_count|pluralize }} and all saved pins.
+      This cannot be undone.
+    </p>
+    <form method="post" class="row">
+      {% csrf_token %}
+      <button type="submit" class="btn danger">Yes, delete this user</button>
+      <a class="btn" href="{% url 'dashboard_admin' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

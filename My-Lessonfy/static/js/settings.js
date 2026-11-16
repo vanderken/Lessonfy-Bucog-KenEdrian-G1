@@ -1,6 +1,3 @@
-/* Reading settings: instant apply, saved in the background (with the CSRF token),
-   plus the focus timer and the background sound.
-   Settings come from the server on page load (see #reader-data). */
 (function () {
   'use strict';
 
@@ -10,7 +7,6 @@
   var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
   var reduceMotion = function () { return matchMedia('(prefers-reduced-motion: reduce)').matches; };
 
-  /* ---------- status line ---------- */
   var statusTimer;
   function status(msg, opts) {
     opts = opts || {};
@@ -21,7 +17,6 @@
     if (msg) statusTimer = setTimeout(function () { el.textContent = ''; el.classList.remove('error'); }, opts.ms || 4000);
   }
 
-  /* ---------- POST helper (JSON + CSRF) ---------- */
   function api(url, body) {
     return fetch(url, {
       method: 'POST',
@@ -41,7 +36,6 @@
     });
   }
 
-  /* ---------- saving settings (batched) ---------- */
   var dirty = {}, saveTimer = null, saving = false;
   function queueSave(key, value) {
     dirty[key] = value;
@@ -65,7 +59,6 @@
     document.dispatchEvent(new CustomEvent('lessonfy:setting', { detail: { key: key } }));
   }
 
-  /* ---------- look: size, spacing, theme, background ---------- */
   function applyStyle() {
     var r = $('#reader');
     r.style.setProperty('--fs', S.font_size + 'px');
@@ -84,7 +77,6 @@
   $('#theme').onclick = function () { S.theme = S.theme === 'dark' ? 'light' : 'dark'; applyTheme(); queueSave('theme', S.theme); };
   $('#bg').onchange = function (e) { S.background = e.target.value; applyTheme(); queueSave('background', S.background); };
 
-  /* ---------- timer ---------- */
   var T = { mode: 'focus', left: 0, run: false, id: null };
   function lens() { return S.timer_preset.split('-').map(Number); }
   function showT() {
@@ -114,7 +106,6 @@
   $('#treset').onclick = function () { stopT(); T.mode = 'focus'; T.left = lens()[0] * 60; showT(); };
   $('#tlen').onchange = function (e) { S.timer_preset = e.target.value; queueSave('timer_preset', S.timer_preset); $('#treset').click(); };
 
-  /* ---------- sound: noise made in the browser (no audio files needed) ---------- */
   var AC = null, src = null, gain = null, playing = false;
   function ensureAC() {
     try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.resume) AC.resume(); } catch (e) { AC = null; }
@@ -157,13 +148,10 @@
     src.start();
     playing = true; showSound();
   }
-  // Browsers block sound until the person clicks, so a saved choice does not
-  // start by itself. Choosing a sound or pressing Play starts it.
   $('#sound').onchange = function (e) { S.sound = e.target.value; queueSave('sound', S.sound); playSound(); };
   $('#soundtoggle').onclick = function () { if (playing) stopSound(); else playSound(); };
   $('#vol').oninput = function (e) { S.volume = +e.target.value; setVol(); queueSave('volume', S.volume); };
 
-  /* ---------- start up ---------- */
   applyStyle(); applyTheme(); applyFocus();
   T.left = lens()[0] * 60; showT(); showSound();
 

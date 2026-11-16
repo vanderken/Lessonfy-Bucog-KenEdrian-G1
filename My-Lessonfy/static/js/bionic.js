@@ -1,11 +1,6 @@
-/* Bionic reading: a visual layer ONLY.
-   It bolds the first part of each word in text that is already on screen.
-   It never changes the stored text or pin offsets: the plain text of the
-   result is always exactly the same as the input. */
 (function () {
   'use strict';
 
-  // Letters (any language), digits, and apostrophes count as part of a word.
   var WORD = /([\p{L}\p{N}'\u2019]+)/u;
 
   function esc(s) {
